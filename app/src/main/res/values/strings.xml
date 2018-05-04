@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">RSA Crypto</string>
+
+    <string name="generate_key_pair">Generate Key Pair</string>
+    <string name="delete_key_pair">Discard Key Pair</string>
+
+    <string name="decrypt">Decrypt</string>
+    <string name="encrypt">Encrypt</string>
+
+
+    <string name="example_text">This text is to be encrypted.</string>
+    <string name="text_to_encrypt">Text to encrypt</string>
+    <string name="derive_key">Derive Key</string>
+
+    <string-array name="rsa_key_sizes">
+        <item>512</item>
+        <item>768</item>
+        <item>1024</item>
+        <item>2048</item>
+        <item>3072</item>
+        <item>4096</item>
+    </string-array>
+
+</resources>
