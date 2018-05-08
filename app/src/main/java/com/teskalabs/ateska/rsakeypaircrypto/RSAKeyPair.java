@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
@@ -96,8 +97,10 @@ public class RSAKeyPair {
 
 		KeyStore keyStore = obtainKeyStore();
 
-		RSAPrivateKey privateKey = (RSAPrivateKey) keyStore.getKey(alias, null);
-		if (privateKey == null) return null; // No key pair
+		Key key = keyStore.getKey(alias, null);
+		if (key == null) return null; // No key pair
+
+		RSAPrivateKey privateKey = (RSAPrivateKey)key;
 
 		int ikmLenght = privateKey.getModulus().bitLength() / 8;
 		byte[] nounce = new byte[ikmLenght];
