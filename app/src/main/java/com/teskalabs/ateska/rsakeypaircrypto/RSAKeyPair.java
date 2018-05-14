@@ -20,6 +20,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Signature;
 import java.security.cert.Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.util.Date;
@@ -100,22 +101,12 @@ public class RSAKeyPair {
 		Key key = keyStore.getKey(alias, null);
 		if (key == null) return null; // No key pair
 
-		RSAPrivateKey privateKey = (RSAPrivateKey)key;
-
-		int ikmLenght = privateKey.getModulus().bitLength() / 8;
-		byte[] nounce = new byte[ikmLenght];
-
-		for (int i=0; i<ikmLenght; i+=1)
+		PrivateKey privateKey = (PrivateKey)key;
+		Signature privateSignature = Signature.getInstance("SHA256withRSA");
+		try
 		{
-			nounce[i] = 0x77;
-		}
-
-		Cipher cipher = Cipher.getInstance("RSA/ECB/NoPadding");
-		cipher.init(Cipher.DECRYPT_MODE, privateKey);
-
-		byte[] ikm; // input Keying Material
-		try {
-			ikm = cipher.doFinal(nounce);
+			privateSignature.initSign(privateKey);
+			privateSignature.update(keyId.getBytes());
 		} catch (GeneralSecurityException e) {
 
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -129,13 +120,16 @@ public class RSAKeyPair {
 			throw e;
 		}
 
+		// Produce intial key material
+		byte[] ikm = privateSignature.sign();
+
 		Mac HMAC = Mac.getInstance("HmacSHA256");
 		SecretKey salt = new SecretKeySpec(new byte[HMAC.getMacLength()], "HmacSHA256");
 		HMAC.init(salt);
 		SecretKey prk = new SecretKeySpec(HMAC.doFinal(ikm),"HmacSHA256");
-		for (int i=0; i<ikmLenght; i+=1)
+		for (int i=0; i<ikm.length; i+=1)
 		{
-			nounce[i] = 0x77;
+			ikm[i] = 0x77;
 		}
 
 		byte[] t = new byte[0];
@@ -243,10 +237,12 @@ public class RSAKeyPair {
 
         KeyStore keyStore = obtainKeyStore();
 
-        KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT);
+        KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT | KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY);
         builder.setKeySize(keySize);
         builder.setBlockModes(KeyProperties.BLOCK_MODE_ECB); // For backward compatibility
         builder.setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1); // For backward compatibility
+		builder.setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PKCS1);
+		builder.setDigests(KeyProperties.DIGEST_SHA256);
 
         builder.setCertificateNotBefore(valid_from);
         builder.setCertificateNotAfter(valid_to);
