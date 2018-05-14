@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
 					UserAuth.showAuthenticationScreen(MainActivity.this, null, null, REQUEST_CODE_USER_AUTHORIZED);
 				}
 				catch (GeneralSecurityException e) {
-					Log.e(TAG, "Error when deriving key");
+					Log.e(TAG, "Error when deriving key", e);
 					makeToast("Key derivation failed!");
 				}
 				catch (Exception e) {
