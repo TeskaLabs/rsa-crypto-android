@@ -16,6 +16,7 @@ import android.widget.Toast;
 import java.security.GeneralSecurityException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -34,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
 	private ProgressBar progressBar = null;
 	int busy = 0;
+	private String retryAction = "none";
 
 	private final ExecutorService es = Executors.newSingleThreadExecutor();
 
@@ -167,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
 					makeToast(outputString);
 				}
 				catch (UserAuth.UserNotAuthenticatedException e) {
+					retryAction = "decrypt";
 					UserAuth.showAuthenticationScreen(MainActivity.this, null, null, REQUEST_CODE_USER_AUTHORIZED);
 				}
 				catch (GeneralSecurityException e) {
@@ -198,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
 					});
 				}
 				catch (UserAuth.UserNotAuthenticatedException e) {
+					retryAction = "derive";
 					UserAuth.showAuthenticationScreen(MainActivity.this, null, null, REQUEST_CODE_USER_AUTHORIZED);
 				}
 				catch (GeneralSecurityException e) {
@@ -221,7 +225,15 @@ public class MainActivity extends AppCompatActivity {
 		if (requestCode == REQUEST_CODE_USER_AUTHORIZED)
 		{
 			if (resultCode == RESULT_OK) {
-				onDecrypt(null);
+				if (retryAction.equals("decrypt")) {
+					onDecrypt(null);
+				}
+				else if (retryAction.equals("derive")) {
+					onDeriveKey(null);
+				}
+				else {
+					makeToast("Now you are authorized, try again!");
+				}
 			}
 		}
 	}
